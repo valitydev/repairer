@@ -5,7 +5,7 @@ import dev.vality.machinegun.lifesink.LifecycleEvent;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LifecycleEventDeserializer extends AbstractThriftDeserializer<LifecycleEvent> {
+public class MachineEventDeserializer extends AbstractThriftDeserializer<LifecycleEvent> {
 
     @Override
     public LifecycleEvent deserialize(String topic, byte[] data) {

@@ -12,5 +12,6 @@ CREATE TABLE rp.machine
     provider_id     CHARACTER VARYING,
     error_message   CHARACTER VARYING,
     current         BOOLEAN                     NOT NULL DEFAULT TRUE,
-    CONSTRAINT machine_pkey PRIMARY KEY (id)
+    CONSTRAINT machine_pkey PRIMARY KEY (id),
+    CONSTRAINT machine_ukey UNIQUE (machine_id, namespace, status, created_at)
 );

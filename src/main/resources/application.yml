@@ -44,6 +44,8 @@ service:
   invoicing:
     url: http://hellgate:8022/v1/processing/partymgmt
     networkTimeout: 5000
+  token-gen:
+    key: blalbla
 kafka:
   bootstrap-servers: kafka:9092
   client-id: repairer

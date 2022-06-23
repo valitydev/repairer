@@ -2,7 +2,7 @@ package dev.vality.repairer.listener;
 
 import dev.vality.kafka.common.util.LogUtil;
 import dev.vality.machinegun.lifesink.LifecycleEvent;
-import dev.vality.repairer.service.LifecycleEventService;
+import dev.vality.repairer.service.MachineEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -15,15 +15,15 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LifecycleEventKafkaListener {
+public class MachineEventKafkaListener {
 
-    private final LifecycleEventService lifecycleEventService;
+    private final MachineEventService machineEventService;
 
     @KafkaListener(topics = "${kafka.topics.lifecycle.id}", containerFactory = "lcContainerFactory")
     public void handle(List<ConsumerRecord<String, LifecycleEvent>> messages, Acknowledgment ack) {
         log.debug("Got lifecycle machine event batch with size: {}", messages.size());
         for (ConsumerRecord<String, LifecycleEvent> message : messages) {
-            lifecycleEventService.processEvent(message.value());
+            machineEventService.processEvent(message.value());
         }
         ack.acknowledge();
         log.debug("Batch lifecycle has been committed, size={}, {}", messages.size(),

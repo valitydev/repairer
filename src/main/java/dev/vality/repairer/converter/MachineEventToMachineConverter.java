@@ -9,6 +9,7 @@ import dev.vality.machinegun.lifesink.LifecycleEvent;
 import dev.vality.machinegun.lifesink.MachineStatus;
 import dev.vality.repairer.domain.enums.Status;
 import dev.vality.repairer.domain.tables.pojos.Machine;
+import dev.vality.repairer.util.MachineUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.core.convert.converter.Converter;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class LifecycleEventToMachineConverter implements Converter<LifecycleEvent, Machine> {
+public class MachineEventToMachineConverter implements Converter<LifecycleEvent, Machine> {
 
     private static final String DEFAULT_PAYMENT_ID = "1"; // cringe
     private final InvoicingSrv.Iface invoicingClient;
@@ -38,13 +39,13 @@ public class LifecycleEventToMachineConverter implements Converter<LifecycleEven
     private String getProviderId(LifecycleEvent source) {
         String machineId = source.getMachineId();
         String machineNs = source.getMachineNs();
-        if (machineNs.equals("invoicing")) {
+        if (MachineUtil.isInvoicing(machineNs)) {
             InvoicePayment payment = invoicingClient.getPayment(machineId, DEFAULT_PAYMENT_ID); //TODO
             if (payment.isSetRoute()) {
                 return String.valueOf(payment.getRoute().getProvider().getId());
             }
-        } else if (machineNs.equals("fistful")) {
-            SessionState sessionState = withdrawalClient.get(machineId, new EventRange());//TODO
+        } else if (MachineUtil.isWithdrawal(machineNs)) {
+            SessionState sessionState = withdrawalClient.get(machineId, new EventRange()); //TODO
             if (sessionState.isSetRoute()) {
                 return String.valueOf(sessionState.getRoute().getProviderId());
             }
