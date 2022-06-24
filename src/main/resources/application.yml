@@ -63,12 +63,17 @@ kafka:
     enable-auto-commit: false
     auto-offset-reset: earliest
     max-poll-records: 20
+    enabled: false
   topics:
     lifecycle:
       id: mg-invoice-100-2
       concurrency: 1
   ssl:
     enabled: false
+
+machine-namespace:
+  invoicingNs: invoice
+  withdrawalSessionNs: withdrawal
 
 info:
   version: '@project.version@'

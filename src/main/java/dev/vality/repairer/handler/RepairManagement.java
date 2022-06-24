@@ -1,94 +1,76 @@
 package dev.vality.repairer.handler;
 
-import dev.vality.damsel.base.InvalidRequest;
-import dev.vality.damsel.payment_processing.InvoiceNotFound;
 import dev.vality.damsel.payment_processing.InvoicingSrv;
-import dev.vality.fistful.MachineAlreadyWorking;
-import dev.vality.fistful.WithdrawalSessionNotFound;
 import dev.vality.fistful.withdrawal_session.RepairerSrv;
 import dev.vality.machinegun.stateproc.AutomatonSrv;
 import dev.vality.machinegun.stateproc.Reference;
 import dev.vality.repairer.*;
+import dev.vality.repairer.client.async.InvoicingCallbackHandler;
+import dev.vality.repairer.client.async.MachinegunCallbackHandler;
+import dev.vality.repairer.client.async.WithdrawalCallbackHandler;
+import dev.vality.repairer.config.properties.MachineNamespaceProperties;
 import dev.vality.repairer.dao.MachineDao;
+import dev.vality.repairer.domain.enums.Status;
 import dev.vality.repairer.service.TokenGenService;
-import dev.vality.repairer.util.MachineUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RepairManagement implements RepairManagementSrv.Iface {
 
     private final MachineDao machineDao;
     private final TokenGenService tokenGenService;
-    private final RepairerSrv.Iface withdrawalRepairClient;
-    private final InvoicingSrv.Iface invoicingClient;
-    private final AutomatonSrv.Iface machinegunClient;
+    private final RepairerSrv.AsyncIface withdrawalRepairClient;
+    private final InvoicingSrv.AsyncIface invoicingClient;
+    private final AutomatonSrv.AsyncIface machinegunClient;
+    private final MachineNamespaceProperties namespaces;
 
     @Override
     public List<MachineRepairResponse> simpleRepairAll(List<MachineSimpleRepairRequest> requests) throws TException {
         return requests.stream().map(r -> {
-            var response = new MachineRepairResponse()
-                    .setId(r.getId())
-                    .setNs(r.getNs())
-                    .setStatus(RepairStatus.in_progress);
+            machineDao.updateStatus(r.getId(), r.getNs(), Status.in_progress, null);
             try {
-                machinegunClient.simpleRepair(r.getNs(), Reference.id(r.getId()));
-            } catch (dev.vality.machinegun.stateproc.NamespaceNotFound |
-                    dev.vality.machinegun.stateproc.MachineNotFound e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage("NotFound");
-            } catch (dev.vality.machinegun.stateproc.MachineFailed e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage("MachineFailed");
-            } catch (dev.vality.machinegun.stateproc.MachineAlreadyWorking e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage("MachineAlreadyWorking");
+                machinegunClient.simpleRepair(r.getNs(), Reference.id(r.getId()),
+                        new MachinegunCallbackHandler(r.getId(), r.getNs(), machineDao));
             } catch (TException e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage(e.getMessage());
+                log.warn("Unexpected exception", e);
             }
-            return response;
+            return getResponseInProgress(r.getId(), r.getNs());
         }).collect(Collectors.toList());
     }
 
     @Override
     public List<MachineRepairResponse> repairWithdrawals(List<RepairWithdrawalRequest> requests) throws TException {
         return requests.stream().map(r -> {
-            var response = new MachineRepairResponse()
-                    .setId(r.getId())
-                    .setNs(MachineUtil.WITHDRAWAL_NAMESPACE)
-                    .setStatus(RepairStatus.in_progress);
+            machineDao.updateStatus(r.getId(), namespaces.getWithdrawalSessionNs(), Status.in_progress, null);
             try {
-                withdrawalRepairClient.repair(r.getId(), r.getScenario());
-            } catch (WithdrawalSessionNotFound e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage("WithdrawalSessionNotFound");
-            } catch (MachineAlreadyWorking e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage("MachineAlreadyWorking");
+                withdrawalRepairClient.repair(r.getId(), r.getScenario(),
+                        new WithdrawalCallbackHandler(r.getId(), namespaces.getWithdrawalSessionNs(), machineDao));
             } catch (TException e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage(e.getMessage());
+                log.warn("Unexpected exception", e);
             }
-            return response;
+            return getResponseInProgress(r.getId(), namespaces.getWithdrawalSessionNs());
         }).collect(Collectors.toList());
     }
 
     @Override
     public List<MachineRepairResponse> repairInvoices(List<RepairInvoiceRequest> requests) throws TException {
         return requests.stream().map(r -> {
-            var response = new MachineRepairResponse()
-                    .setId(r.getId())
-                    .setNs(MachineUtil.INVOICE_NAMESPACE)
-                    .setStatus(RepairStatus.in_progress);
+            machineDao.updateStatus(r.getId(), namespaces.getInvoicingNs(), Status.in_progress, null);
             try {
-                invoicingClient.repairWithScenario(r.getId(), r.getScenario());
-            } catch (InvoiceNotFound e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage("InvoiceNotFound");
-            } catch (InvalidRequest e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage("InvalidRequest");
+                invoicingClient.repairWithScenario(r.getId(), r.getScenario(),
+                        new InvoicingCallbackHandler(r.getId(), namespaces.getWithdrawalSessionNs(), machineDao));
             } catch (TException e) {
-                response.setStatus(RepairStatus.failed).setErrorMessage(e.getMessage());
+                log.warn("Unexpected exception", e);
             }
-            return response;
+            return getResponseInProgress(r.getId(), namespaces.getInvoicingNs());
         }).collect(Collectors.toList());
     }
 
@@ -102,5 +84,12 @@ public class RepairManagement implements RepairManagementSrv.Iface {
         return new SearchResponse()
                 .setMachines(machines)
                 .setContinuationToken(continuationToken);
+    }
+
+    private MachineRepairResponse getResponseInProgress(String id, String namespaces) {
+        return new MachineRepairResponse()
+                .setId(id)
+                .setNs(namespaces)
+                .setStatus(RepairStatus.in_progress);
     }
 }

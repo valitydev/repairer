@@ -15,3 +15,9 @@ CREATE TABLE rp.machine
     CONSTRAINT machine_pkey PRIMARY KEY (id),
     CONSTRAINT machine_ukey UNIQUE (machine_id, namespace, status, created_at)
 );
+
+create index machine_id_idx on machine (machine_id, namespace);
+create index machine_created_at_idx on machine (created_at);
+create index machine_status_idx on machine (status);
+create index machine_provider_id_idx on machine (provider_id);
+create index machine_error_message_idx on machine (error_message);

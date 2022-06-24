@@ -19,7 +19,10 @@ public class MachineEventKafkaListener {
 
     private final MachineEventService machineEventService;
 
-    @KafkaListener(topics = "${kafka.topics.lifecycle.id}", containerFactory = "lcContainerFactory")
+    @KafkaListener(
+            autoStartup = "${kafka.consumer.enabled}",
+            topics = "${kafka.topics.lifecycle.id}",
+            containerFactory = "lcContainerFactory")
     public void handle(List<ConsumerRecord<String, LifecycleEvent>> messages, Acknowledgment ack) {
         log.debug("Got lifecycle machine event batch with size: {}", messages.size());
         for (ConsumerRecord<String, LifecycleEvent> message : messages) {

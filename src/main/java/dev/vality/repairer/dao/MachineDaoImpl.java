@@ -3,6 +3,7 @@ package dev.vality.repairer.dao;
 import dev.vality.geck.common.util.TypeUtil;
 import dev.vality.repairer.SearchRequest;
 import dev.vality.repairer.StatusHistory;
+import dev.vality.repairer.Timespan;
 import dev.vality.repairer.constant.SearchConstant;
 import dev.vality.repairer.dao.field.ConditionParameterSource;
 import dev.vality.repairer.dao.rowmapper.MachineRowMapper;
@@ -10,7 +11,7 @@ import dev.vality.repairer.dao.rowmapper.StatusHistoryRowMapper;
 import dev.vality.repairer.domain.Tables;
 import dev.vality.repairer.domain.enums.Status;
 import dev.vality.repairer.domain.tables.pojos.Machine;
-import dev.vality.repairer.service.TimeHolder;
+import dev.vality.repairer.model.TimeHolder;
 import dev.vality.repairer.service.TokenGenService;
 import org.jooq.Operator;
 import org.jooq.Query;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.jooq.Comparator.EQUALS;
+import static org.jooq.Comparator.LESS;
 
 @Component
 public class MachineDaoImpl extends AbstractDao implements MachineDao {
@@ -65,7 +67,18 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
                         .and(Tables.MACHINE.NAMESPACE.eq(machine.getNamespace())
                                 .and(Tables.MACHINE.CURRENT.eq(true)
                                         .and(Tables.MACHINE.ID.notEqual(machine.getId())))));
-        executeOne(query);
+        execute(query);
+    }
+
+    @Override
+    public void updateStatus(String machineId, String namespace, Status status, String errorMessage) {
+        Query query = getDslContext().update(Tables.MACHINE)
+                .set(Tables.MACHINE.STATUS, status)
+                .set(Tables.MACHINE.ERROR_MESSAGE, errorMessage)
+                .where(Tables.MACHINE.MACHINE_ID.eq(machineId)
+                        .and(Tables.MACHINE.NAMESPACE.eq(namespace)
+                                .and(Tables.MACHINE.CURRENT.eq(true))));
+        execute(query);
     }
 
     @Override
@@ -83,6 +96,7 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
                 ))
                 .orderBy(Tables.MACHINE.CREATED_AT.desc())
                 .limit(request.isSetLimit() ? request.getLimit() : SearchConstant.LIMIT);
+        System.out.println(query.getSQL());
         List<dev.vality.repairer.Machine> result = fetch(query, machineRowMapper);
         result.forEach(m -> m.setHistory(getHistory(m)));
         return result;
@@ -97,11 +111,14 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
     }
 
     private TimeHolder buildTimeHolder(SearchRequest request) {
-        return TimeHolder.builder()
-                .fromTime(TypeUtil.stringToLocalDateTime(request.getTimespan().getFromTime()))
-                .toTime(TypeUtil.stringToLocalDateTime(request.getTimespan().getToTime()))
-                .whereTime(tokenGenService.extractTime(request.getContinuationToken()))
-                .build();
+        TimeHolder timeHolder = new TimeHolder();
+        Timespan timespan = request.getTimespan();
+        if (timespan != null) {
+            timeHolder.setFromTime(TypeUtil.stringToLocalDateTime(timespan.getFromTime()));
+            timeHolder.setToTime(TypeUtil.stringToLocalDateTime(timespan.getToTime()));
+        }
+        timeHolder.setWhereTime(tokenGenService.extractTime(request.getContinuationToken()));
+        return timeHolder;
     }
 
     private ConditionParameterSource prepareCondition(SearchRequest searchQuery, TimeHolder timeHolder) {
@@ -111,6 +128,7 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
                 .addValue(Tables.MACHINE.PROVIDER_ID, searchQuery.getProviderId(), EQUALS)
                 .addValue(Tables.MACHINE.ERROR_MESSAGE, searchQuery.getErrorMessage(), EQUALS)
                 .addValue(Tables.MACHINE.CURRENT, true, EQUALS)
+                .addValue(Tables.MACHINE.CREATED_AT, timeHolder.getWhereTime(), LESS)
                 .addValue(Tables.MACHINE.STATUS,
                         searchQuery.isSetStatus()
                                 ? TypeUtil.toEnumField(searchQuery.getStatus().name(), Status.class)

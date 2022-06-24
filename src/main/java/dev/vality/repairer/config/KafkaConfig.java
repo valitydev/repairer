@@ -40,7 +40,7 @@ public class KafkaConfig {
     private int maxPollRecords;
     @Value("${kafka.bootstrap-servers}")
     private String bootstrapServers;
-    @Value("${kafka.topics.party-management.concurrency}")
+    @Value("${kafka.topics.lifecycle.concurrency}")
     private int partyConcurrency;
 
     private Map<String, Object> consumerConfigs(KafkaSslProperties kafkaSslProperties) {

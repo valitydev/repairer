@@ -15,8 +15,9 @@ import java.io.IOException;
 @Configuration
 public class AppConfig {
     @Bean
-    public InvoicingSrv.Iface invoicingClient(@Value("${service.invoicing.url}") Resource resource,
-                                              @Value("${service.invoicing.networkTimeout}") int networkTimeout)
+    public InvoicingSrv.Iface invoicingManagementClient(
+            @Value("${service.invoicing.url}") Resource resource,
+            @Value("${service.invoicing.networkTimeout}") int networkTimeout)
             throws IOException {
         return new THSpawnClientBuilder()
                 .withNetworkTimeout(networkTimeout)
@@ -33,22 +34,32 @@ public class AppConfig {
     }
 
     @Bean
-    public RepairerSrv.Iface withdrawalRepairClient(
+    public InvoicingSrv.AsyncIface invoicingRepairClient(
+            @Value("${service.invoicing.url}") Resource resource,
+            @Value("${service.invoicing.networkTimeout}") int networkTimeout)
+            throws IOException {
+        return new THSpawnClientBuilder()
+                .withNetworkTimeout(networkTimeout)
+                .withAddress(resource.getURI()).build(InvoicingSrv.AsyncIface.class);
+    }
+
+    @Bean
+    public RepairerSrv.AsyncIface withdrawalRepairClient(
             @Value("${service.withdrawal_repair.url}") Resource resource,
             @Value("${service.withdrawal_repair.networkTimeout}") int networkTimeout)
             throws IOException {
         return new THSpawnClientBuilder()
                 .withNetworkTimeout(networkTimeout)
-                .withAddress(resource.getURI()).build(RepairerSrv.Iface.class);
+                .withAddress(resource.getURI()).build(RepairerSrv.AsyncIface.class);
     }
 
     @Bean
-    public AutomatonSrv.Iface machinegunClient(
+    public AutomatonSrv.AsyncIface machinegunClient(
             @Value("${service.machinegun_repair.url}") Resource resource,
             @Value("${service.machinegun_repair.networkTimeout}") int networkTimeout)
             throws IOException {
         return new THSpawnClientBuilder()
                 .withNetworkTimeout(networkTimeout)
-                .withAddress(resource.getURI()).build(AutomatonSrv.Iface.class);
+                .withAddress(resource.getURI()).build(AutomatonSrv.AsyncIface.class);
     }
 }

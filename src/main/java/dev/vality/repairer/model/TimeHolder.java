@@ -1,12 +1,12 @@
-package dev.vality.repairer.service;
+package dev.vality.repairer.model;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@NoArgsConstructor
 public class TimeHolder {
 
     private LocalDateTime fromTime;
