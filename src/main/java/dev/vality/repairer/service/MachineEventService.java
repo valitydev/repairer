@@ -6,8 +6,10 @@ import dev.vality.repairer.converter.MachineEventToMachineConverter;
 import dev.vality.repairer.dao.MachineDao;
 import dev.vality.repairer.domain.tables.pojos.Machine;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MachineEventService {
@@ -20,6 +22,7 @@ public class MachineEventService {
         if (accept(lifecycleEvent)) {
             Machine machine = converter.convert(lifecycleEvent);
             machineDao.save(machine).ifPresent(id -> machineDao.updateCurrent(machine, id));
+            log.info("Event processed: {}", lifecycleEvent);
         }
     }
 

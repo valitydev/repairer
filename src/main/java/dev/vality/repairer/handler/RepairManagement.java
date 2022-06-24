@@ -34,6 +34,7 @@ public class RepairManagement implements RepairManagementSrv.Iface {
 
     @Override
     public List<MachineRepairResponse> simpleRepairAll(List<MachineSimpleRepairRequest> requests) throws TException {
+        log.info("Simple repair machines {}", requests);
         return requests.stream().map(r -> {
             machineDao.updateStatus(r.getId(), r.getNs(), Status.in_progress, null);
             try {
@@ -48,6 +49,7 @@ public class RepairManagement implements RepairManagementSrv.Iface {
 
     @Override
     public List<MachineRepairResponse> repairWithdrawals(List<RepairWithdrawalRequest> requests) throws TException {
+        log.info("Repair withdrawals {}", requests);
         return requests.stream().map(r -> {
             machineDao.updateStatus(r.getId(), namespaces.getWithdrawalSessionNs(), Status.in_progress, null);
             try {
@@ -62,6 +64,7 @@ public class RepairManagement implements RepairManagementSrv.Iface {
 
     @Override
     public List<MachineRepairResponse> repairInvoices(List<RepairInvoiceRequest> requests) throws TException {
+        log.info("Repair invoices {}", requests);
         return requests.stream().map(r -> {
             machineDao.updateStatus(r.getId(), namespaces.getInvoicingNs(), Status.in_progress, null);
             try {
@@ -76,14 +79,17 @@ public class RepairManagement implements RepairManagementSrv.Iface {
 
     @Override
     public SearchResponse search(SearchRequest request) throws TException {
+        log.info("Search request {}", request);
         var requestWithNullToken = new SearchRequest(request);
         requestWithNullToken.setContinuationToken(null);
         tokenGenService.validateToken(requestWithNullToken, request.getContinuationToken());
         List<Machine> machines = machineDao.search(request);
         String continuationToken = tokenGenService.generateToken(requestWithNullToken, machines);
-        return new SearchResponse()
+        SearchResponse searchResponse = new SearchResponse()
                 .setMachines(machines)
                 .setContinuationToken(continuationToken);
+        log.info("Search response, size {}", searchResponse.getMachines().size());
+        return searchResponse;
     }
 
     private MachineRepairResponse getResponseInProgress(String id, String namespaces) {
