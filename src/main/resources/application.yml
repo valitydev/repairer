@@ -44,6 +44,15 @@ service:
   invoicing:
     url: http://hellgate:8022/v1/processing/partymgmt
     networkTimeout: 5000
+  withdrawal_managenent:
+    url: http://fistful:8022/v1/withdrawal_session/management
+    networkTimeout: 5000
+  withdrawal_repair:
+    url: http://fistful:8022/v1/withdrawal_session/repair
+    networkTimeout: 5000
+  machinegun_repair:
+    url: http://machinegun:8022/v1/repair
+    networkTimeout: 5000
   token-gen:
     key: blalbla
 kafka:

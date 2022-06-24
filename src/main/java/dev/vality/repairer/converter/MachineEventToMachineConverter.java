@@ -21,7 +21,7 @@ public class MachineEventToMachineConverter implements Converter<LifecycleEvent,
 
     private static final String DEFAULT_PAYMENT_ID = "1"; // cringe
     private final InvoicingSrv.Iface invoicingClient;
-    private final ManagementSrv.Iface withdrawalClient;
+    private final ManagementSrv.Iface withdrawalManagementClient;
 
     @Override
     public Machine convert(LifecycleEvent source) {
@@ -45,7 +45,7 @@ public class MachineEventToMachineConverter implements Converter<LifecycleEvent,
                 return String.valueOf(payment.getRoute().getProvider().getId());
             }
         } else if (MachineUtil.isWithdrawal(machineNs)) {
-            SessionState sessionState = withdrawalClient.get(machineId, new EventRange()); //TODO
+            SessionState sessionState = withdrawalManagementClient.get(machineId, new EventRange()); //TODO
             if (sessionState.isSetRoute()) {
                 return String.valueOf(sessionState.getRoute().getProviderId());
             }

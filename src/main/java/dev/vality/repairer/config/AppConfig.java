@@ -2,6 +2,8 @@ package dev.vality.repairer.config;
 
 import dev.vality.damsel.payment_processing.InvoicingSrv;
 import dev.vality.fistful.withdrawal_session.ManagementSrv;
+import dev.vality.fistful.withdrawal_session.RepairerSrv;
+import dev.vality.machinegun.stateproc.AutomatonSrv;
 import dev.vality.woody.thrift.impl.http.THSpawnClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,11 +24,31 @@ public class AppConfig {
     }
 
     @Bean
-    public ManagementSrv.Iface withdrawalClient(@Value("${service.fistful.url}") Resource resource,
-                                                @Value("${service.fistful.networkTimeout}") int networkTimeout)
-            throws IOException {
+    public ManagementSrv.Iface withdrawalManagementClient(
+            @Value("${service.withdrawal_managenent.url}") Resource resource,
+            @Value("${service.withdrawal_managenent.networkTimeout}") int networkTimeout) throws IOException {
         return new THSpawnClientBuilder()
                 .withNetworkTimeout(networkTimeout)
                 .withAddress(resource.getURI()).build(ManagementSrv.Iface.class);
+    }
+
+    @Bean
+    public RepairerSrv.Iface withdrawalRepairClient(
+            @Value("${service.withdrawal_repair.url}") Resource resource,
+            @Value("${service.withdrawal_repair.networkTimeout}") int networkTimeout)
+            throws IOException {
+        return new THSpawnClientBuilder()
+                .withNetworkTimeout(networkTimeout)
+                .withAddress(resource.getURI()).build(RepairerSrv.Iface.class);
+    }
+
+    @Bean
+    public AutomatonSrv.Iface machinegunClient(
+            @Value("${service.machinegun_repair.url}") Resource resource,
+            @Value("${service.machinegun_repair.networkTimeout}") int networkTimeout)
+            throws IOException {
+        return new THSpawnClientBuilder()
+                .withNetworkTimeout(networkTimeout)
+                .withAddress(resource.getURI()).build(AutomatonSrv.Iface.class);
     }
 }

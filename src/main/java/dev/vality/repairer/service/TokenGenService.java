@@ -2,6 +2,7 @@ package dev.vality.repairer.service;
 
 import dev.vality.geck.common.util.TypeUtil;
 import dev.vality.geck.serializer.Geck;
+import dev.vality.repairer.Machine;
 import dev.vality.repairer.SearchRequest;
 import dev.vality.repairer.exception.BadTokenException;
 import dev.vality.repairer.util.HmacUtil;
@@ -18,8 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.function.Function;
-
 
 @Slf4j
 @Service
@@ -49,24 +48,13 @@ public class TokenGenService {
         }
     }
 
-    public <T> String generateToken(
-            TBase query,
-            SearchRequest commonParams,
-            List<T> objects,
-            Function<List<T>, T> lastElementFunction,
-            Function<T, String> dateTimeFunction) {
-        return generateToken(query, commonParams, objects, dateTimeFunction.compose(lastElementFunction));
-    }
-
-    public <T> String generateToken(
-            TBase query,
-            SearchRequest commonParams,
-            List<T> objects,
-            Function<List<T>, String> dateTimeFunction) {
-        if (!CollectionUtils.isEmpty(objects) && commonParams.isSetLimit()
-                && objects.size() == commonParams.getLimit()) {
-            final String createdAt = dateTimeFunction.apply(objects);
-            return generateToken(query, TypeUtil.stringToLocalDateTime(createdAt));
+    public String generateToken(
+            SearchRequest searchRequest,
+            List<Machine> machines) {
+        if (!CollectionUtils.isEmpty(machines) && searchRequest.isSetLimit()
+                && machines.size() == searchRequest.getLimit()) {
+            var createdAt = machines.get(machines.size() - 1).getCreatedAt();
+            return generateToken(searchRequest, TypeUtil.stringToLocalDateTime(createdAt));
         }
         return null;
     }
@@ -101,9 +89,7 @@ public class TokenGenService {
 
     @Data
     private static final class TokenHolder {
-
         private final String token;
         private final LocalDateTime timestamp;
-
     }
 }
