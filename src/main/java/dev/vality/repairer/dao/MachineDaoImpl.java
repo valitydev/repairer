@@ -129,8 +129,8 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
                 .addValue(Tables.MACHINE.CURRENT, true, EQUALS)
                 .addValue(Tables.MACHINE.CREATED_AT, timeHolder.getWhereTime(), LESS)
                 .addValue(Tables.MACHINE.IN_PROGRESS,
-                        searchQuery.isSetStatus() ?
-                                searchQuery.getStatus().equals(RepairStatus.in_progress)
+                        searchQuery.isSetStatus()
+                                ? searchQuery.getStatus().equals(RepairStatus.in_progress)
                                 : null,
                         EQUALS)
                 .addValue(Tables.MACHINE.STATUS,
