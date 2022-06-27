@@ -2,9 +2,11 @@ package dev.vality.repairer.dao;
 
 import dev.vality.repairer.RepairStatus;
 import dev.vality.repairer.SearchRequest;
+import dev.vality.repairer.domain.enums.Status;
 import dev.vality.repairer.domain.tables.pojos.Machine;
 import dev.vality.repairer.config.PostgresqlSpringBootITest;
 import dev.vality.repairer.util.MapperUtil;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,9 +53,11 @@ public class MachineDaoTest {
         assertEquals(RepairStatus.in_progress, result.get(0).getStatus());
     }
 
-    @Test
+    @RepeatedTest(5)
     public void search() {
-        Machine source = random(Machine.class, "id", "current");
+        Machine source = random(Machine.class, "id", "current", "inProgress");
+        source.setStatus(Status.failed);
+        System.out.println(source);
         machineDao.save(source);
         SearchRequest request = new SearchRequest()
                 .setIds(List.of(source.getMachineId()))
@@ -68,7 +72,7 @@ public class MachineDaoTest {
 
     @Test
     public void searchInProgress() {
-        Machine source = random(Machine.class, "id", "current");
+        Machine source = random(Machine.class, "id", "current", "inProgress");
         machineDao.save(source);
         machineDao.updateInProgress(source.getMachineId(), source.getNamespace(), true);
         SearchRequest request = new SearchRequest()
@@ -79,7 +83,7 @@ public class MachineDaoTest {
 
     @Test
     public void searchInProgressNotFound() {
-        Machine source = random(Machine.class, "id", "current");
+        Machine source = random(Machine.class, "id", "current", "inProgress");
         machineDao.save(source);
         machineDao.updateInProgress(source.getMachineId(), source.getNamespace(), true);
         SearchRequest request = new SearchRequest()
