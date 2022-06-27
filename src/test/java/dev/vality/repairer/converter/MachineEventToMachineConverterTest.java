@@ -36,13 +36,7 @@ public class MachineEventToMachineConverterTest {
         assertEquals(source.getMachineId(), machine.getMachineId());
         assertEquals(source.getMachineNs(), machine.getNamespace());
         assertEquals(TypeUtil.stringToLocalDateTime(source.getCreatedAt()), machine.getCreatedAt());
-        MachineStatus newStatus = source.getData().getMachine().getStatusChanged().getNewStatus();
-        if (newStatus.isSetFailed()) {
-            assertEquals(Status.failed, machine.getStatus());
-            assertEquals(newStatus.getFailed().getReason(), machine.getErrorMessage());
-        } else if (source.getData().getMachine().getStatusChanged().getNewStatus().isSetWorking()) {
-            assertEquals(Status.repaired, machine.getStatus());
-        }
+        assertEquals(Status.repaired, machine.getStatus());
     }
 
     @Test
@@ -55,12 +49,6 @@ public class MachineEventToMachineConverterTest {
         assertEquals(source.getMachineId(), machine.getMachineId());
         assertEquals(source.getMachineNs(), machine.getNamespace());
         assertEquals(TypeUtil.stringToLocalDateTime(source.getCreatedAt()), machine.getCreatedAt());
-        MachineStatus newStatus = source.getData().getMachine().getStatusChanged().getNewStatus();
-        if (newStatus.isSetFailed()) {
-            assertEquals(Status.failed, machine.getStatus());
-            assertEquals(newStatus.getFailed().getReason(), machine.getErrorMessage());
-        } else if (source.getData().getMachine().getStatusChanged().getNewStatus().isSetWorking()) {
-            assertEquals(Status.repaired, machine.getStatus());
-        }
+        assertEquals(Status.failed, machine.getStatus());
     }
 }

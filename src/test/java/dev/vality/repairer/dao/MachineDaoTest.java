@@ -65,4 +65,26 @@ public class MachineDaoTest {
         assertEquals(1, result.size());
         assertEquals(source.getMachineId(), result.get(0).getId());
     }
+
+    @Test
+    public void searchInProgress() {
+        Machine source = random(Machine.class, "id", "current");
+        machineDao.save(source);
+        machineDao.updateInProgress(source.getMachineId(), source.getNamespace(), true);
+        SearchRequest request = new SearchRequest()
+                .setStatus(RepairStatus.in_progress);
+        var result = machineDao.search(request);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    public void searchInProgressNotFound() {
+        Machine source = random(Machine.class, "id", "current");
+        machineDao.save(source);
+        machineDao.updateInProgress(source.getMachineId(), source.getNamespace(), true);
+        SearchRequest request = new SearchRequest()
+                .setStatus(RepairStatus.failed);
+        var result = machineDao.search(request);
+        assertTrue(result.isEmpty());
+    }
 }

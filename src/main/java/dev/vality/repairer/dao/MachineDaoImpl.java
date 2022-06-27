@@ -1,6 +1,7 @@
 package dev.vality.repairer.dao;
 
 import dev.vality.geck.common.util.TypeUtil;
+import dev.vality.repairer.RepairStatus;
 import dev.vality.repairer.SearchRequest;
 import dev.vality.repairer.StatusHistory;
 import dev.vality.repairer.Timespan;
@@ -127,6 +128,11 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
                 .addValue(Tables.MACHINE.ERROR_MESSAGE, searchQuery.getErrorMessage(), EQUALS)
                 .addValue(Tables.MACHINE.CURRENT, true, EQUALS)
                 .addValue(Tables.MACHINE.CREATED_AT, timeHolder.getWhereTime(), LESS)
+                .addValue(Tables.MACHINE.IN_PROGRESS,
+                        searchQuery.isSetStatus() ?
+                                searchQuery.getStatus().equals(RepairStatus.in_progress)
+                                : null,
+                        EQUALS)
                 .addValue(Tables.MACHINE.STATUS,
                         searchQuery.isSetStatus()
                                 ? TypeUtil.toEnumField(searchQuery.getStatus().name(), Status.class)
