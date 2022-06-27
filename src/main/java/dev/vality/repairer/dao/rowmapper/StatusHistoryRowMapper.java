@@ -1,6 +1,7 @@
 package dev.vality.repairer.dao.rowmapper;
 
 import dev.vality.geck.common.util.TypeUtil;
+import dev.vality.repairer.RepairStatus;
 import dev.vality.repairer.StatusHistory;
 import dev.vality.repairer.domain.Tables;
 import dev.vality.repairer.domain.enums.Status;
@@ -20,7 +21,9 @@ public class StatusHistoryRowMapper implements RowMapper<StatusHistory> {
         return new StatusHistory()
                 .setChangedAt(TypeUtil.temporalToString(
                         rs.getObject(Tables.MACHINE.CREATED_AT.getName(), LocalDateTime.class)))
-                .setStatus(MapperUtil.map(TypeUtil.toEnumField(
-                        rs.getString(Tables.MACHINE.STATUS.getName()), Status.class)));
+                .setStatus(rs.getBoolean(Tables.MACHINE.IN_PROGRESS.getName())
+                        ? RepairStatus.in_progress :
+                        MapperUtil.map(TypeUtil.toEnumField(
+                                rs.getString(Tables.MACHINE.STATUS.getName()), Status.class)));
     }
 }

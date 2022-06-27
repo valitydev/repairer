@@ -3,30 +3,22 @@ package dev.vality.repairer.client.async;
 import dev.vality.fistful.MachineAlreadyWorking;
 import dev.vality.fistful.WithdrawalSessionNotFound;
 import dev.vality.repairer.dao.MachineDao;
-import dev.vality.repairer.domain.enums.Status;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.thrift.async.AsyncMethodCallback;
 
 @Slf4j
-@RequiredArgsConstructor
-public class WithdrawalCallbackHandler implements AsyncMethodCallback<Void> {
+public class WithdrawalCallbackHandler extends AsyncMethodCallbackImpl {
 
-    private final String id;
-    private final String namespace;
-    private final MachineDao machineDao;
-
-    @Override
-    public void onComplete(Void unused) {
+    public WithdrawalCallbackHandler(String id, String namespace, MachineDao machineDao) {
+        super(id, namespace, machineDao);
     }
 
     @Override
     public void onError(Exception e) {
         if (e instanceof WithdrawalSessionNotFound) {
-            machineDao.updateStatus(id, namespace, Status.failed, "WithdrawalSessionNotFound");
+            log.info("Withdrawal session not found: {}", id);
         } else if (e instanceof MachineAlreadyWorking) {
-            log.info("Machine {} is already working", id);
-            machineDao.updateStatus(id, namespace, Status.repaired, null);
+            log.info("Withdrawal {} is already working", id);
+            machineDao.updateInProgress(id, namespace, false);
         } else {
             log.warn("Unknown state of machine {}", id);
         }

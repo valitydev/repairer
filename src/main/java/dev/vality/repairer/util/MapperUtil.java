@@ -8,7 +8,6 @@ public class MapperUtil {
     public static RepairStatus map(Status status) {
         return switch (status) {
             case failed -> RepairStatus.failed;
-            case in_progress -> RepairStatus.in_progress;
             case repaired -> RepairStatus.repaired;
         };
     }

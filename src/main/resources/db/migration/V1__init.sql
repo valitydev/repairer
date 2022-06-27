@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS rp;
 
-CREATE TYPE rp.status AS ENUM ('failed', 'in_progress', 'repaired');
+CREATE TYPE rp.status AS ENUM ('failed', 'repaired');
 
 CREATE TABLE rp.machine
 (
@@ -12,6 +12,7 @@ CREATE TABLE rp.machine
     provider_id     CHARACTER VARYING,
     error_message   CHARACTER VARYING,
     current         BOOLEAN                     NOT NULL DEFAULT TRUE,
+    in_progress     BOOLEAN                     NOT NULL DEFAULT FALSE,
     CONSTRAINT machine_pkey PRIMARY KEY (id),
     CONSTRAINT machine_ukey UNIQUE (machine_id, namespace, status, created_at)
 );

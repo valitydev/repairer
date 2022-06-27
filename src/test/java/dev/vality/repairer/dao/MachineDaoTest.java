@@ -1,5 +1,6 @@
 package dev.vality.repairer.dao;
 
+import dev.vality.repairer.RepairStatus;
 import dev.vality.repairer.SearchRequest;
 import dev.vality.repairer.domain.tables.pojos.Machine;
 import dev.vality.repairer.config.PostgresqlSpringBootITest;
@@ -25,7 +26,6 @@ public class MachineDaoTest {
         Optional<Long> idOptional = machineDao.save(source);
         assertTrue(idOptional.isPresent());
         var result = machineDao.search(new SearchRequest());
-        assertFalse(result.isEmpty());
         assertEquals(1, result.size());
         assertEquals(source.getMachineId(), result.get(0).getId());
     }
@@ -41,17 +41,27 @@ public class MachineDaoTest {
     }
 
     @Test
+    public void updateInProgress() {
+        Machine source = random(Machine.class, "id", "current");
+        Optional<Long> idOptional = machineDao.save(source);
+        assertTrue(idOptional.isPresent());
+        machineDao.updateInProgress(source.getMachineId(), source.getNamespace(), true);
+        var result = machineDao.search(new SearchRequest());
+        assertEquals(1, result.size());
+        assertEquals(RepairStatus.in_progress, result.get(0).getStatus());
+    }
+
+    @Test
     public void search() {
         Machine source = random(Machine.class, "id", "current");
         machineDao.save(source);
         SearchRequest request = new SearchRequest()
-                .setId(List.of(source.getMachineId()))
+                .setIds(List.of(source.getMachineId()))
                 .setNs(source.getNamespace())
                 .setStatus(MapperUtil.map(source.getStatus()))
                 .setProviderId(source.getProviderId())
                 .setErrorMessage(source.getErrorMessage());
         var result = machineDao.search(request);
-        assertFalse(result.isEmpty());
         assertEquals(1, result.size());
         assertEquals(source.getMachineId(), result.get(0).getId());
     }

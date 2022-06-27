@@ -4,7 +4,9 @@ import dev.vality.geck.common.util.TypeUtil;
 import dev.vality.repairer.Machine;
 import dev.vality.repairer.SearchRequest;
 import dev.vality.repairer.config.properties.TokenGenProperties;
+import dev.vality.repairer.exception.BadTokenException;
 import dev.vality.testcontainers.annotations.util.RandomBeans;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -14,11 +16,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TokenGenServiceTest {
 
-    @Test
-    public void test() {
+    private TokenGenService tokenGenService;
+
+    @BeforeEach
+    public void setUp() {
         TokenGenProperties tokenGenProperties = new TokenGenProperties();
         tokenGenProperties.setKey("kek");
-        TokenGenService tokenGenService = new TokenGenServiceImpl(tokenGenProperties);
+        tokenGenService = new TokenGenServiceImpl(tokenGenProperties);
+    }
+
+    @Test
+    public void testGenerateToken() {
         SearchRequest searchRequest = RandomBeans.randomThrift(SearchRequest.class);
         searchRequest.setContinuationToken(null);
         searchRequest.setLimit(1);
@@ -27,5 +35,11 @@ public class TokenGenServiceTest {
         tokenGenService.validateToken(searchRequest, token);
         LocalDateTime extractTime = tokenGenService.extractTime(token);
         assertEquals(TypeUtil.stringToLocalDateTime(machine.getCreatedAt()), extractTime);
+    }
+
+    @Test
+    public void testInvalidToken() {
+        assertThrows(BadTokenException.class,
+                () -> tokenGenService.validateToken(new SearchRequest(), "invalidToken"));
     }
 }

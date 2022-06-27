@@ -3,29 +3,21 @@ package dev.vality.repairer.client.async;
 import dev.vality.damsel.base.InvalidRequest;
 import dev.vality.damsel.payment_processing.InvoiceNotFound;
 import dev.vality.repairer.dao.MachineDao;
-import dev.vality.repairer.domain.enums.Status;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.thrift.async.AsyncMethodCallback;
 
 @Slf4j
-@RequiredArgsConstructor
-public class InvoicingCallbackHandler implements AsyncMethodCallback<Void> {
+public class InvoicingCallbackHandler extends AsyncMethodCallbackImpl {
 
-    private final String id;
-    private final String namespace;
-    private final MachineDao machineDao;
-
-    @Override
-    public void onComplete(Void unused) {
+    public InvoicingCallbackHandler(String id, String namespace, MachineDao machineDao) {
+        super(id, namespace, machineDao);
     }
 
     @Override
     public void onError(Exception e) {
         if (e instanceof InvoiceNotFound) {
-            machineDao.updateStatus(id, namespace, Status.failed, "InvoiceNotFound");
+            log.info("Invoice not found: {}", id);
         } else if (e instanceof InvalidRequest) {
-            machineDao.updateStatus(id, namespace, Status.failed, "InvalidRequest");
+            log.info("Invalid request: {}", id);
         } else {
             log.warn("Unknown state of machine {}", id);
         }

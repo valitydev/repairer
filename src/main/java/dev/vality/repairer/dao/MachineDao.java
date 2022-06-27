@@ -1,7 +1,6 @@
 package dev.vality.repairer.dao;
 
 import dev.vality.repairer.SearchRequest;
-import dev.vality.repairer.domain.enums.Status;
 import dev.vality.repairer.domain.tables.pojos.Machine;
 
 import java.util.List;
@@ -13,7 +12,7 @@ public interface MachineDao {
 
     void updateCurrent(Machine machine, Long id);
 
-    void updateStatus(String machineId, String namespace, Status status, String errorMessage);
+    void updateInProgress(String machineId, String namespace, boolean inProgress);
 
     List<dev.vality.repairer.Machine> search(SearchRequest request);
 

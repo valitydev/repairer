@@ -71,10 +71,9 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
     }
 
     @Override
-    public void updateStatus(String machineId, String namespace, Status status, String errorMessage) {
+    public void updateInProgress(String machineId, String namespace, boolean inProgress) {
         Query query = getDslContext().update(Tables.MACHINE)
-                .set(Tables.MACHINE.STATUS, status)
-                .set(Tables.MACHINE.ERROR_MESSAGE, errorMessage)
+                .set(Tables.MACHINE.IN_PROGRESS, inProgress)
                 .where(Tables.MACHINE.MACHINE_ID.eq(machineId)
                         .and(Tables.MACHINE.NAMESPACE.eq(namespace)
                                 .and(Tables.MACHINE.CURRENT.eq(true))));
@@ -96,7 +95,6 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
                 ))
                 .orderBy(Tables.MACHINE.CREATED_AT.desc())
                 .limit(request.isSetLimit() ? request.getLimit() : SearchConstant.LIMIT);
-        System.out.println(query.getSQL());
         List<dev.vality.repairer.Machine> result = fetch(query, machineRowMapper);
         result.forEach(m -> m.setHistory(getHistory(m)));
         return result;
@@ -123,7 +121,7 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
 
     private ConditionParameterSource prepareCondition(SearchRequest searchQuery, TimeHolder timeHolder) {
         return new ConditionParameterSource()
-                .addInConditionValue(Tables.MACHINE.MACHINE_ID, searchQuery.getId())
+                .addInConditionValue(Tables.MACHINE.MACHINE_ID, searchQuery.getIds())
                 .addValue(Tables.MACHINE.NAMESPACE, searchQuery.getNs(), EQUALS)
                 .addValue(Tables.MACHINE.PROVIDER_ID, searchQuery.getProviderId(), EQUALS)
                 .addValue(Tables.MACHINE.ERROR_MESSAGE, searchQuery.getErrorMessage(), EQUALS)

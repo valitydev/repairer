@@ -1,17 +1,12 @@
 package dev.vality.repairer.converter;
 
-import dev.vality.damsel.payment_processing.*;
-import dev.vality.fistful.base.EventRange;
-import dev.vality.fistful.withdrawal_session.ManagementSrv;
-import dev.vality.fistful.withdrawal_session.SessionState;
 import dev.vality.geck.common.util.TypeUtil;
 import dev.vality.machinegun.lifesink.LifecycleEvent;
 import dev.vality.machinegun.lifesink.MachineStatus;
-import dev.vality.repairer.config.properties.MachineNamespaceProperties;
 import dev.vality.repairer.domain.enums.Status;
 import dev.vality.repairer.domain.tables.pojos.Machine;
+import dev.vality.repairer.service.ProviderService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +14,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MachineEventToMachineConverter implements Converter<LifecycleEvent, Machine> {
 
-    private static final String DEFAULT_PAYMENT_ID = "1"; // cringe
-    private final InvoicingSrv.Iface invoicingClient;
-    private final ManagementSrv.Iface withdrawalManagementClient;
-    private final MachineNamespaceProperties namespaceProperties;
+    private final ProviderService providerService;
 
     @Override
     public Machine convert(LifecycleEvent source) {
@@ -32,27 +24,10 @@ public class MachineEventToMachineConverter implements Converter<LifecycleEvent,
         result.setCreatedAt(TypeUtil.stringToLocalDateTime(source.getCreatedAt()));
         result.setStatus(getStatus(source));
         result.setErrorMessage(getErrorMessage(source));
-        result.setProviderId(getProviderId(source));
+        result.setProviderId(providerService.getProviderId(source));
         return result;
     }
 
-    @SneakyThrows
-    private String getProviderId(LifecycleEvent source) {
-        String machineId = source.getMachineId();
-        String machineNs = source.getMachineNs();
-        if (machineNs.equals(namespaceProperties.getInvoicingNs())) {
-            InvoicePayment payment = invoicingClient.getPayment(machineId, DEFAULT_PAYMENT_ID); //TODO
-            if (payment.isSetRoute()) {
-                return String.valueOf(payment.getRoute().getProvider().getId());
-            }
-        } else if (machineNs.equals(namespaceProperties.getWithdrawalSessionNs())) {
-            SessionState sessionState = withdrawalManagementClient.get(machineId, new EventRange()); //TODO
-            if (sessionState.isSetRoute()) {
-                return String.valueOf(sessionState.getRoute().getProviderId());
-            }
-        }
-        return null;
-    }
 
     private String getErrorMessage(LifecycleEvent source) {
         MachineStatus newStatus = source.getData().getMachine().getStatusChanged().getNewStatus();
