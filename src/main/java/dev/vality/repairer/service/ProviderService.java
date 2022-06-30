@@ -33,7 +33,7 @@ public class ProviderService {
                 }
             }
         } else if (machineNs.equals(namespaceProperties.getWithdrawalSessionNs())) {
-            SessionState sessionState = withdrawalManagementClient.get(machineId, null);
+            SessionState sessionState = withdrawalManagementClient.get(machineId, new EventRange());
             if (sessionState.isSetRoute()) {
                 return String.valueOf(sessionState.getRoute().getProviderId());
             }
