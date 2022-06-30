@@ -67,7 +67,7 @@ public class MachineDaoImpl extends AbstractDao implements MachineDao {
                 .where(Tables.MACHINE.MACHINE_ID.eq(machine.getMachineId())
                         .and(Tables.MACHINE.NAMESPACE.eq(machine.getNamespace())
                                 .and(Tables.MACHINE.CURRENT.eq(true)
-                                        .and(Tables.MACHINE.ID.notEqual(machine.getId())))));
+                                        .and(Tables.MACHINE.ID.notEqual(id)))));
         execute(query);
     }
 
