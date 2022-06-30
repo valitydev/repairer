@@ -10,6 +10,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +41,26 @@ public class MachineDaoTest {
         machineDao.updateCurrent(source, idOptional.get());
         var result = machineDao.search(new SearchRequest());
         assertFalse(result.isEmpty());
+    }
+
+    @Test
+    public void updateCurrentForTwoEvents() {
+        Machine sourceFailed = random(Machine.class, "id", "current", "status");
+        sourceFailed.setStatus(Status.failed);
+        Optional<Long> idOptionalFailed = machineDao.save(sourceFailed);
+        assertTrue(idOptionalFailed.isPresent());
+        machineDao.updateCurrent(sourceFailed, idOptionalFailed.get());
+
+        Machine sourceRepaired = new Machine();
+        sourceRepaired.setMachineId(sourceFailed.getMachineId());
+        sourceRepaired.setNamespace(sourceFailed.getNamespace());
+        sourceRepaired.setStatus(Status.repaired);
+        sourceRepaired.setCreatedAt(LocalDateTime.now());
+        Optional<Long> idOptionalRepaired = machineDao.save(sourceRepaired);
+        assertTrue(idOptionalRepaired.isPresent());
+        machineDao.updateCurrent(sourceRepaired, idOptionalFailed.get());
+        var result = machineDao.search(new SearchRequest());
+        assertEquals(1, result.size());
     }
 
     @Test
