@@ -82,8 +82,8 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, SinkEvent> lcContainerFactory(
-            ConsumerFactory<String, SinkEvent> pmConsumerFactory) {
-        var factory = createGeneralKafkaListenerFactory(pmConsumerFactory);
+            ConsumerFactory<String, SinkEvent> lcConsumerFactory) {
+        var factory = createGeneralKafkaListenerFactory(lcConsumerFactory);
         factory.setBatchListener(true);
         factory.setBatchErrorHandler(new SeekToCurrentWithSleepBatchErrorHandler());
         factory.setConcurrency(partyConcurrency);
