@@ -6,7 +6,7 @@
     <parent>
         <groupId>dev.vality</groupId>
         <artifactId>service-parent-pom</artifactId>
-        <version>1.0.17</version>
+        <version>1.0.18</version>
     </parent>
 
     <artifactId>repairer</artifactId>
@@ -30,7 +30,7 @@
         <db.port>5432</db.port>
         <db.name>repairer</db.name>
         <db.url>jdbc:postgresql://localhost:${db.port}/${db.name}</db.url>
-        <testcontainers.version>1.17.1</testcontainers.version>
+        <testcontainers.version>1.17.3</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -55,12 +55,12 @@
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>machinegun-proto</artifactId>
-            <version>1.38-347c5c4</version>
+            <version>1.39-07767de</version>
         </dependency>
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>fistful-proto</artifactId>
-            <version>1.145-c45166d</version>
+            <version>1.149-f19e383</version>
         </dependency>
         <dependency>
             <groupId>dev.vality.geck</groupId>
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>repairer-proto</artifactId>
-            <version>1.4-77614c9</version>
+            <version>1.5-8ccd6f7</version>
         </dependency>
         <!--spring-->
         <dependency>
@@ -179,7 +179,7 @@
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>testcontainers-annotations</artifactId>
-            <version>1.4.0</version>
+            <version>1.4.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -325,7 +325,7 @@
                     <dependency>
                         <groupId>org.apache.maven.shared</groupId>
                         <artifactId>maven-filtering</artifactId>
-                        <version>3.2.0</version>
+                        <version>3.3.0</version>
                     </dependency>
                 </dependencies>
                 <configuration>
