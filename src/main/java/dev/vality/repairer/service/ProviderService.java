@@ -26,7 +26,7 @@ public class ProviderService {
         String machineNs = source.getMachineNs();
         if (machineNs.equals(namespaceProperties.getInvoicingNs())) {
             Invoice invoice = invoicingClient.get(machineId, null);
-            if (invoice.isSetPayments()) {
+            if (invoice.isSetPayments() && !invoice.getPayments().isEmpty()) {
                 InvoicePayment payment = invoice.getPayments().get(invoice.getPayments().size() - 1);
                 if (payment.isSetRoute()) {
                     return String.valueOf(payment.getRoute().getProvider().getId());
