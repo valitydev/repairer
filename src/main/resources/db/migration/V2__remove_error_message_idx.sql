@@ -1,0 +1,1 @@
+DROP INDEX machine_error_message_idx;
