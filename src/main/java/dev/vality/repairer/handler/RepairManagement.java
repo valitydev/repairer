@@ -1,13 +1,14 @@
 package dev.vality.repairer.handler;
 
+import dev.vality.damsel.base.InvalidRequest;
+import dev.vality.damsel.payment_processing.InvoiceNotFound;
 import dev.vality.damsel.payment_processing.InvoicingSrv;
+import dev.vality.fistful.MachineAlreadyWorking;
+import dev.vality.fistful.WithdrawalSessionNotFound;
 import dev.vality.fistful.withdrawal_session.RepairerSrv;
-import dev.vality.machinegun.stateproc.AutomatonSrv;
-import dev.vality.machinegun.stateproc.Reference;
+import dev.vality.machinegun.stateproc.*;
 import dev.vality.repairer.*;
-import dev.vality.repairer.client.async.InvoicingCallbackHandler;
-import dev.vality.repairer.client.async.MachinegunCallbackHandler;
-import dev.vality.repairer.client.async.WithdrawalCallbackHandler;
+import dev.vality.repairer.Machine;
 import dev.vality.repairer.config.properties.MachineNamespaceProperties;
 import dev.vality.repairer.dao.MachineDao;
 import dev.vality.repairer.service.TokenGenService;
@@ -18,6 +19,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Component
@@ -26,22 +30,18 @@ public class RepairManagement implements RepairManagementSrv.Iface {
 
     private final MachineDao machineDao;
     private final TokenGenService tokenGenService;
-    private final RepairerSrv.AsyncIface withdrawalRepairClient;
-    private final InvoicingSrv.AsyncIface invoicingClient;
-    private final AutomatonSrv.AsyncIface machinegunClient;
+    private final RepairerSrv.Iface withdrawalRepairClient;
+    private final InvoicingSrv.Iface invoicingClient;
+    private final AutomatonSrv.Iface machinegunClient;
     private final MachineNamespaceProperties namespaces;
+    private final Executor executor = Executors.newFixedThreadPool(10);
 
     @Override
     public void simpleRepairAll(List<MachineSimpleRepairRequest> requests) throws TException {
         log.info("Simple repair machines {}", toString(requests));
         requests.forEach(request -> {
             machineDao.updateInProgress(request.getId(), request.getNs(), true);
-            try {
-                machinegunClient.simpleRepair(request.getNs(), Reference.id(request.getId()),
-                        new MachinegunCallbackHandler(request.getId(), request.getNs(), machineDao));
-            } catch (TException e) {
-                log.warn("Unexpected exception", e);
-            }
+            simpleRepair(request);
         });
     }
 
@@ -50,13 +50,7 @@ public class RepairManagement implements RepairManagementSrv.Iface {
         log.info("Repair withdrawals {}", toString(requests));
         requests.forEach(request -> {
             machineDao.updateInProgress(request.getId(), namespaces.getWithdrawalSessionNs(), true);
-            try {
-                withdrawalRepairClient.repair(request.getId(), request.getScenario(),
-                        new WithdrawalCallbackHandler(request.getId(),
-                                namespaces.getWithdrawalSessionNs(), machineDao));
-            } catch (TException e) {
-                log.warn("Unexpected exception", e);
-            }
+            repairWithdrawal(request);
         });
     }
 
@@ -65,12 +59,7 @@ public class RepairManagement implements RepairManagementSrv.Iface {
         log.info("Repair invoices {}", toString(requests));
         requests.forEach(request -> {
             machineDao.updateInProgress(request.getId(), namespaces.getInvoicingNs(), true);
-            try {
-                invoicingClient.repairWithScenario(request.getId(), request.getScenario(),
-                        new InvoicingCallbackHandler(request.getId(), namespaces.getWithdrawalSessionNs(), machineDao));
-            } catch (TException e) {
-                log.warn("Unexpected exception", e);
-            }
+            repairInvoice(request);
         });
     }
 
@@ -87,6 +76,56 @@ public class RepairManagement implements RepairManagementSrv.Iface {
                 .setContinuationToken(continuationToken);
         log.info("Search response, size {}", searchResponse.getMachines().size());
         return searchResponse;
+    }
+
+    private void simpleRepair(MachineSimpleRepairRequest request) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                machinegunClient.simpleRepair(request.getNs(), Reference.id(request.getId()));
+            } catch (NamespaceNotFound e) {
+                log.info("Machine namespace not found: {}, {}", request.getId(), request.getNs());
+            } catch (MachineNotFound e) {
+                log.info("Machine not found: {}, {}", request.getId(), request.getNs());
+            } catch (MachineFailed e) {
+                log.info("Machine failed: {}, {}", request.getId(), request.getNs());
+            } catch (dev.vality.machinegun.stateproc.MachineAlreadyWorking e) {
+                log.info("Machine {}, {} is already working", request.getId(), request.getNs());
+                machineDao.updateInProgress(request.getId(), request.getNs(), false);
+            } catch (TException e) {
+                log.warn("Unexpected exception", e);
+            }
+        }, executor);
+    }
+
+    private void repairWithdrawal(RepairWithdrawalRequest request) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                withdrawalRepairClient.repair(request.getId(), request.getScenario());
+                machineDao.updateInProgress(request.getId(), namespaces.getWithdrawalSessionNs(), false);
+            } catch (WithdrawalSessionNotFound e) {
+                log.info("Withdrawal session not found: {}", request.getId());
+            } catch (MachineAlreadyWorking e) {
+                log.info("Withdrawal {} is already working", request.getId());
+                machineDao.updateInProgress(request.getId(), namespaces.getWithdrawalSessionNs(), false);
+            } catch (TException e) {
+                log.warn("Unexpected exception", e);
+            }
+        }, executor);
+    }
+
+    private void repairInvoice(RepairInvoiceRequest request) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                invoicingClient.repairWithScenario(request.getId(), request.getScenario());
+                machineDao.updateInProgress(request.getId(), namespaces.getInvoicingNs(), false);
+            } catch (InvoiceNotFound e) {
+                log.info("Invoice not found: {}", request.getId());
+            } catch (InvalidRequest e) {
+                log.info("Invalid request: {}", request.getId());
+            } catch (TException e) {
+                log.warn("Unexpected exception", e);
+            }
+        }, executor);
     }
 
     private <E> String toString(Collection<E> collection) {
