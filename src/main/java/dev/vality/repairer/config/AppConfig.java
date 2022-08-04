@@ -15,7 +15,7 @@ import java.io.IOException;
 @Configuration
 public class AppConfig {
     @Bean
-    public InvoicingSrv.Iface invoicingManagementClient(
+    public InvoicingSrv.Iface invoicingClient(
             @Value("${service.invoicing.url}") Resource resource,
             @Value("${service.invoicing.networkTimeout}") int networkTimeout)
             throws IOException {
@@ -34,32 +34,22 @@ public class AppConfig {
     }
 
     @Bean
-    public InvoicingSrv.AsyncIface invoicingRepairClient(
-            @Value("${service.invoicing.url}") Resource resource,
-            @Value("${service.invoicing.networkTimeout}") int networkTimeout)
-            throws IOException {
-        return new THSpawnClientBuilder()
-                .withNetworkTimeout(networkTimeout)
-                .withAddress(resource.getURI()).build(InvoicingSrv.AsyncIface.class);
-    }
-
-    @Bean
-    public RepairerSrv.AsyncIface withdrawalRepairClient(
+    public RepairerSrv.Iface withdrawalRepairClient(
             @Value("${service.withdrawal_repair.url}") Resource resource,
             @Value("${service.withdrawal_repair.networkTimeout}") int networkTimeout)
             throws IOException {
         return new THSpawnClientBuilder()
                 .withNetworkTimeout(networkTimeout)
-                .withAddress(resource.getURI()).build(RepairerSrv.AsyncIface.class);
+                .withAddress(resource.getURI()).build(RepairerSrv.Iface.class);
     }
 
     @Bean
-    public AutomatonSrv.AsyncIface machinegunClient(
+    public AutomatonSrv.Iface machinegunClient(
             @Value("${service.machinegun_repair.url}") Resource resource,
             @Value("${service.machinegun_repair.networkTimeout}") int networkTimeout)
             throws IOException {
         return new THSpawnClientBuilder()
                 .withNetworkTimeout(networkTimeout)
-                .withAddress(resource.getURI()).build(AutomatonSrv.AsyncIface.class);
+                .withAddress(resource.getURI()).build(AutomatonSrv.Iface.class);
     }
 }
