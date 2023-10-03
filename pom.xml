@@ -6,11 +6,11 @@
     <parent>
         <groupId>dev.vality</groupId>
         <artifactId>service-parent-pom</artifactId>
-        <version>1.0.17</version>
+        <version>1.0.20</version>
     </parent>
 
     <artifactId>repairer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <packaging>jar</packaging>
 
     <name>repairer</name>
@@ -30,7 +30,7 @@
         <db.port>5432</db.port>
         <db.name>repairer</db.name>
         <db.url>jdbc:postgresql://localhost:${db.port}/${db.name}</db.url>
-        <testcontainers.version>1.17.1</testcontainers.version>
+        <testcontainers.version>1.17.1</t1.19.1
     </properties>
 
     <dependencies>
@@ -55,12 +55,12 @@
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>machinegun-proto</artifactId>
-            <version>1.38-347c5c4</version>
+            <version>1.38-347c1.41-96f7f11</version>
         </dependency>
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>fistful-proto</artifactId>
-            <version>1.145-c45166d</version>
+            <version>1.145-c451.161-c9c3aa0</version>
         </dependency>
         <dependency>
             <groupId>dev.vality.geck</groupId>
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>repairer-proto</artifactId>
-            <version>1.4-77614c9</version>
+            <version>1.4-776141.10-932d7cb</version>
         </dependency>
         <!--spring-->
         <dependency>
@@ -179,8 +179,7 @@
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>testcontainers-annotations</artifactId>
-            <version>1.4.0</version>
-            <scope>test</scope>
+            <version>1.4.0</ve1.4.3</scope>
         </dependency>
     </dependencies>
 
@@ -325,7 +324,7 @@
                     <dependency>
                         <groupId>org.apache.maven.shared</groupId>
                         <artifactId>maven-filtering</artifactId>
-                        <version>3.2.0</version>
+                        <version>3.3.1</version>
                     </dependency>
                 </dependencies>
                 <configuration>
