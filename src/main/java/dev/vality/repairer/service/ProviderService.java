@@ -9,9 +9,11 @@ import dev.vality.fistful.withdrawal_session.SessionState;
 import dev.vality.machinegun.lifesink.LifecycleEvent;
 import dev.vality.repairer.config.properties.MachineNamespaceProperties;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.thrift.TException;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProviderService {
@@ -20,24 +22,29 @@ public class ProviderService {
     private final ManagementSrv.Iface withdrawalManagementClient;
     private final MachineNamespaceProperties namespaceProperties;
 
-    @SneakyThrows
     public String getProviderId(LifecycleEvent source) {
         String machineId = source.getMachineId();
         String machineNs = source.getMachineNs();
-        if (machineNs.equals(namespaceProperties.getInvoicingNs())) {
-            Invoice invoice = invoicingClient.get(machineId, null);
-            if (invoice.isSetPayments() && !invoice.getPayments().isEmpty()) {
-                InvoicePayment payment = invoice.getPayments().get(invoice.getPayments().size() - 1);
-                if (payment.isSetRoute()) {
-                    return String.valueOf(payment.getRoute().getProvider().getId());
+
+        try {
+            if (machineNs.equals(namespaceProperties.getInvoicingNs())) {
+                Invoice invoice = invoicingClient.get(machineId, null);
+                if (invoice.isSetPayments() && !invoice.getPayments().isEmpty()) {
+                    InvoicePayment payment = invoice.getPayments().get(invoice.getPayments().size() - 1);
+                    if (payment.isSetRoute()) {
+                        return String.valueOf(payment.getRoute().getProvider().getId());
+                    }
+                }
+            } else if (machineNs.equals(namespaceProperties.getWithdrawalSessionNs())) {
+                SessionState sessionState = withdrawalManagementClient.get(machineId, new EventRange());
+                if (sessionState.isSetRoute()) {
+                    return String.valueOf(sessionState.getRoute().getProviderId());
                 }
             }
-        } else if (machineNs.equals(namespaceProperties.getWithdrawalSessionNs())) {
-            SessionState sessionState = withdrawalManagementClient.get(machineId, new EventRange());
-            if (sessionState.isSetRoute()) {
-                return String.valueOf(sessionState.getRoute().getProviderId());
-            }
+        } catch (TException e) {
+            log.warn("Unable to get providerId for machineId={}, machineNs={}", machineId, machineNs, e);
         }
+
         return null;
     }
 }
