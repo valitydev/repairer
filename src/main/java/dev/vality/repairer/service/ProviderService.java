@@ -41,7 +41,7 @@ public class ProviderService {
                     return String.valueOf(sessionState.getRoute().getProviderId());
                 }
             }
-        } catch (TException e) {
+        } catch (Exception e) {
             log.warn("Unable to get providerId for machineId={}, machineNs={}", machineId, machineNs, e);
         }
 
