@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>repairer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <packaging>jar</packaging>
 
     <name>repairer</name>
@@ -30,7 +30,7 @@
         <db.port>5432</db.port>
         <db.name>repairer</db.name>
         <db.url>jdbc:postgresql://localhost:${db.port}/${db.name}</db.url>
-        <testcontainers.version>1.17.1</testcontainers.version>
+        <testcontainers.version>1.17.1</t1.19.7
     </properties>
 
     <dependencies>
@@ -179,7 +179,7 @@
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>testcontainers-annotations</artifactId>
-            <version>1.4.0</version>
+            <version>1.4.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
