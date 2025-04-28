@@ -16,7 +16,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.CommonErrorHandler;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 
 import java.io.File;
 import java.util.HashMap;
@@ -85,7 +87,7 @@ public class KafkaConfig {
             ConsumerFactory<String, SinkEvent> lcConsumerFactory) {
         var factory = createGeneralKafkaListenerFactory(lcConsumerFactory);
         factory.setBatchListener(true);
-        factory.setBatchErrorHandler(new SeekToCurrentWithSleepBatchErrorHandler());
+        factory.setCommonErrorHandler(new DefaultErrorHandler());
         factory.setConcurrency(partyConcurrency);
         return factory;
     }

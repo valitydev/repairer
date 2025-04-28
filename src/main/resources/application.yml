@@ -78,3 +78,7 @@ machine-namespace:
 info:
   version: '@project.version@'
   stage: dev
+
+testcontainers:
+  postgresql:
+    tag: "17"
