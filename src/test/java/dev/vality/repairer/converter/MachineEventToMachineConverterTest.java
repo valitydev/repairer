@@ -2,6 +2,9 @@ package dev.vality.repairer.converter;
 
 import dev.vality.geck.common.util.TypeUtil;
 import dev.vality.machinegun.lifesink.*;
+import dev.vality.machinegun.stateproc.MachineStatus;
+import dev.vality.machinegun.stateproc.MachineStatusFailed;
+import dev.vality.machinegun.stateproc.MachineStatusWorking;
 import dev.vality.repairer.domain.enums.Status;
 import dev.vality.repairer.domain.tables.pojos.Machine;
 import dev.vality.repairer.service.ProviderService;
