@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>repairer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>repairer</name>
@@ -30,7 +30,7 @@
         <db.port>5432</db.port>
         <db.name>repairer</db.name>
         <db.url>jdbc:postgresql://localhost:${db.port}/${db.name}</db.url>
-        <testcontainers.version>1.19.1</testcontainers.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
         <flyway.version>11.0.0</flyway.version>
     </properties>
 
