@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>repairer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>repairer</name>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>fistful-proto</artifactId>
-            <version>1.180-8b04c7f</version>
+            <version>1.181-f478436</version>
         </dependency>
         <dependency>
             <groupId>dev.vality.geck</groupId>
