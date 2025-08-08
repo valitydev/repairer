@@ -6,7 +6,7 @@
     <parent>
         <groupId>dev.vality</groupId>
         <artifactId>service-parent-pom</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.4</version>
     </parent>
 
     <artifactId>repairer</artifactId>
@@ -37,11 +37,6 @@
     <dependencies>
 
         <!--vality-->
-        <dependency>
-            <groupId>dev.vality.woody</groupId>
-            <artifactId>woody-thrift</artifactId>
-            <version>${woody.version}</version>
-        </dependency>
         <dependency>
             <groupId>dev.vality</groupId>
             <artifactId>shared-resources</artifactId>
